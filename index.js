@@ -1,4 +1,5 @@
 const moves = [1, 2, -1, -2, -1, 2, 1, -2];
+const SIZE = 8;
 
 function createGameBoard(size) {
     let arr = [];
@@ -8,7 +9,7 @@ function createGameBoard(size) {
     return arr;
 }
 
-const gameboard = createGameBoard(8);
+const gameboard = createGameBoard(SIZE);
 
 class Graph {
     constructor() {
@@ -16,9 +17,7 @@ class Graph {
         this.generate();
     }
 
-    addSquare(coords) {
-        this._gameboard.set(coords.toString(), []);
-    }
+    addSquare(coords) { this._gameboard.set(coords.toString(), []); }
 
     addEdge(square, edge) {
         let skip = this._gameboard.get(square.toString()).find(e => e === edge.toString());
@@ -29,19 +28,17 @@ class Graph {
     }
 
     generate() {
-        for (let i = 0; i < gameboard.length; i++) {
-            this.addSquare(gameboard[i]);
-        }
+        gameboard.forEach(sq => this.addSquare(sq));
 
         for (let i = 0; i < gameboard.length; i++) {
             for (let j = 0; j < moves.length; j++) {
                 let x = gameboard[i][0] + moves[j];
                 let y = gameboard[i][1] + moves[j + 1];
-                if (x >= 0 && x < 8 && y >= 0 && y < 8) this.addEdge(gameboard[i], [x, y]);
+                if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) this.addEdge(gameboard[i], [x, y]);
 
                 x = gameboard[i][0] + moves[j + 1];
                 y = gameboard[i][1] + moves[j];
-                if (x >= 0 && x < 8 && y >= 0 && y < 8) this.addEdge(gameboard[i], [x, y]);
+                if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) this.addEdge(gameboard[i], [x, y]);
             }
         }
     }
@@ -52,5 +49,37 @@ class Graph {
 let g = new Graph();
 
 function knightsTravail(start, end) {
-    console.log(g.getGameBoard().get(start.toString()))
+    let visited = [];
+    let queue = [[0, start.toString()]];
+
+    while (queue.length > 0) {
+        let currentSquare = queue.shift();
+
+        let skip = visited.find(s => s[1] === currentSquare[1]);
+
+        if (!skip) {
+            if (currentSquare[1] === end.toString()) {
+                console.log(`You made it in ${currentSquare[0]} moves! Here's your path:`);
+                let arr = [currentSquare[1]];
+
+                while (currentSquare[1] !== start.toString()) {
+                    let e = g.getGameBoard().get(currentSquare[1]);
+                    currentSquare = visited.find(edge =>
+                        (edge[0] === currentSquare[0] - 1 && e.includes(edge[1])));
+
+                    arr.unshift(currentSquare[1]);
+                }
+
+                arr.forEach(square => console.log(`[${square}]`));
+                return;
+            }
+
+            let edges = g.getGameBoard().get(currentSquare[1]);
+            for (let i = 0; i < edges.length; i++) {
+                queue.push([currentSquare[0] + 1, edges[i]]);
+            }
+
+            visited.push(currentSquare);
+        }
+    }
 }
